@@ -1,0 +1,132 @@
+
+function scheduleHtmlParser(html) {
+
+	let result = [];
+	$("tbody tr").each(function() {
+		$(this).children("td").filter(function() {
+		     return $(this).attr("class") == "td";
+		}).map(function(index) {
+			return {
+				day: index + 1,
+				classHtmls: $(this).find("div")
+			}
+		}).filter(function(){
+			return !(this.classHtmls.length == 1 && !$(this.classHtmls[0]).text().trim()); // 没课
+		}).each(function() {
+			let day = this.day;
+			this.classHtmls.each(function() {
+				let classProperty = $(this).html().split("<br>").map(function(item) {
+					return $('<div/>').html(item).text().trim();
+				});
+				if (classProperty.length != 4) {
+					return;
+				}
+console.log('sssss')
+		
+				let classItem = {
+					name: classProperty[0],
+					teacher: classProperty[1],
+					position: classProperty[3],
+					day: day,			
+					sections: [],
+					weeks: [],
+				};
+
+
+///////////////去除NaN
+Array.prototype.delNaN = function () {
+    var arr = [];
+    for (var i = 0; i < this.length; i++) {
+        if (this[i] === this[i]) {
+            arr.push(this[i]);
+        }
+    }
+    return arr;
+}
+
+///////////////////
+/////////////////////////////写入周开始
+classProperty[2].split("[")[0].split(",").forEach(function(week1, i1){ // 5,7,9,13-16
+console.log('ss：'+week1)
+let zhancun=[];
+console.log('写入周开始')
+let dan=week1.indexOf("单");
+let shuang=week1.indexOf("双");
+///////////////单数写入
+					if (week1.indexOf("-") !=-1) { // 13-16
+					console.log("week1:"+week1.split("-")[0])		
+if(dan!=-1){
+	console.log("单周存在")
+console.log("week2:"+week1.split("-")[1].replace("单",""));
+						for (var weekdan = Number(week1.split("-")[0]); 
+						weekdan <= Number(week1.split("-")[1].replace("单","")); weekdan++) {
+							
+							if(weekdan%2 !=0){
+							
+								console.log("取出单周")
+							console.log("week:"+weekdan)
+
+								zhancun.push(weekdan);//起始周
+							
+							}
+						}
+					} else {
+
+						zhancun.push(Number(week1));//尾数周
+
+					}
+
+///////////双数写入
+	if(shuang!=-1)
+{console.log("双周存在")
+	console.log("week2:"+week1.split("-")[1].replace("双",""));
+for (var weekshuang = Number(week1.split("-")[0]); 
+						weekshuang <= Number(week1.split("-")[1].replace("双","")); weekshuang++) {						
+							if(weekshuang%2==0){
+								console.log("取出双周")
+							console.log("week:"+weekshuang)
+							zhancun.push(weekshuang);//起始周
+
+							}
+						}
+					} else {
+    	zhancun.push(Number(week1));//尾数周									
+}
+
+
+//////////////////无单双周存在
+						for (var week = Number(week1.split("-")[0]); 
+
+						week <= Number(week1.split("-")[1]); week++) {
+							console.log("week:"+week)
+							zhancun.push(week);
+						}
+					} else {
+						zhancun.push(Number(week1));
+					}
+
+
+console.log('写入周结束')
+var brr=zhancun.delNaN();
+console.log(brr)
+classItem.weeks.push(brr)
+				})
+//////////////////////////////////写入周结束
+
+
+				let sectionRange = classProperty[2].split("[")[1].replace("]", "");
+				for (var section = Number(sectionRange.split("-")[0]); section <= Number(sectionRange.split("-")[1]); section++) {
+					classItem.sections.push({
+						section: section
+					});
+				}
+                console.log(classItem)
+				result.push(classItem)
+			})
+	
+		})
+	})
+	//console.log('ww'+section)
+    console.info(result)
+	return {courseInfos: result};
+}
