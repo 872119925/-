@@ -1,0 +1,239 @@
+
+
+///基于  https://github.com/web1n/XiaoAISchedule_hebust 修改而来
+///1.03   2021.3.18 修复了周数嵌套的问题
+let sectionTimes = [{
+        "section": 1,    ////第一节 id 0
+        "startTime": "8:25", 
+        "endTime": "9:10"
+    },
+    {
+        "section": 2,
+        "startTime": "9:15",
+        "endTime": "10:00"
+    },
+    {
+        "section": 3,
+        "startTime": "10:20",
+        "endTime": "11:05"
+    },
+    {
+        "section": 4,
+        "startTime": "11:10",
+        "endTime": "11:55"
+    },
+    {
+        "section": 5,   ////第五节
+        "startTime": "14:30",
+        "endTime": "15:15"
+    },
+    {
+        "section": 6,
+        "startTime": "15:20",
+        "endTime": "16:05"
+    },
+    {
+        "section": 7,
+        "startTime": "16:25",
+        "endTime": "17:10"
+    },
+    {
+        "section": 8,
+        "startTime": "17:15",
+        "endTime": "18:00"
+    },
+    {
+        "section": 9,
+        "startTime": "18:50",
+        "endTime": "19:35"
+    },
+    {
+        "section": 10,
+        "startTime": "19:40",
+        "endTime": "20:25"
+    },
+    {
+        "section": 11,
+        "startTime": "20:30",
+        "endTime": "21:15"
+    },
+    {
+        "section": 12,
+        "startTime": "21:20",
+        "endTime": "22:05"
+    }];
+////////////////数组结束
+var get_zancun=[];
+let result = [];//结果存放
+function scheduleHtmlParser(html) {
+//////////////时间数组
+ 
+	
+	$("tbody tr").each(function() {
+		$(this).children("td").filter(function() {
+		     return $(this).attr("class") == "td";
+		}).map(function(index) {
+			return {
+				day: index + 1,
+				classHtmls: $(this).find("div")
+			}
+		}).filter(function(){
+			return !(this.classHtmls.length == 1 && !$(this.classHtmls[0]).text().trim()); // 没课
+		}).each(function() {
+			let day = this.day;
+			this.classHtmls.each(function() {
+				let classProperty = $(this).html().split("<br>").map(function(item) {
+					return $('<div/>').html(item).text().trim();
+				});
+				if (classProperty.length != 4) {
+					return;
+				}
+//console.log('sssss')
+		
+				let classItem = {
+					name: classProperty[0],
+					position: classProperty[3],
+					teacher: classProperty[1],
+					weeks: [],
+					day: day,			
+					sections: []
+
+					
+				};
+				
+///////////////去除NaN
+Array.prototype.delNaN = function () {
+    var arr = [];
+    for (var i = 0; i < this.length; i++) {
+        if (this[i] === this[i]) {
+            arr.push(this[i]);
+        }
+    }
+    return arr;
+}
+
+///////////////////
+
+
+/////////////////////////////写入周开始
+var bbb=[];
+var jo=[];
+classProperty[2].split("[")[0].split(",").forEach(function(week1, i1){ // 5,7,9,13-16
+//console.log('获取周：'+week1)
+let zancun=[];
+//console.log('写入周开始')
+let dan=week1.indexOf("单");
+let shuang=week1.indexOf("双");
+//特殊单周写入
+if(dan!=-1){
+
+	console.log("单周存在")
+	  if(week1.indexOf("-")==-1){
+                    console.log("单个单周存在:",week1.split(" ")[0])
+                    var tweekdan=Number(week1.split(" ")[0])
+                    zancun.push(tweekdan);
+console.log("单个单周暂存:",zancun)
+                }
+              	
+						
+					
+                }
+///////////////单数写入
+					if (week1.indexOf("-") !=-1) { // 13-16
+					//console.log("week1:"+week1.split("-")[0])		
+if(dan!=-1){
+
+	console.log("单周存在")
+	  if(week1.indexOf(" ")!=1){
+                    console.log("单个单周存在:",week1.split(" ")[0])
+                    var tweekdan=Number(week1.split(" ")[0])
+                    zancun.push(tweekdan);
+                }
+                	//console.log("week2:"+week1.split("-")[1].replace("单",""));
+						for (var weekdan = Number(week1.split("-")[0]); 
+						weekdan <= Number(week1.split("-")[1].replace("单","")); weekdan++) {
+							if(weekdan%2 !=0){
+								//console.log("取出单周")
+							//console.log("week:"+weekdan)
+								zancun.push(weekdan);//起始周
+								//console.log("当前暂存:"+zancun.delNaN())
+							}else {
+						zancun.push(Number(week1));//尾数周
+					}
+						}
+					
+                }
+
+///特殊双数位
+/////
+
+
+/////结束
+///////////普通双数写入
+
+	if(shuang!=-1)
+{//console.log("双周存在")
+	//console.log("week2:"+week1.split("-")[1].replace("双",""));
+for (var weekshuang = Number(week1.split("-")[0]); 
+						weekshuang <= Number(week1.split("-")[1].replace("双","")); weekshuang++) {						
+							if(weekshuang%2==0){
+								//console.log("取出双周")
+							//console.log("week:"+weekshuang)
+							zancun.push(weekshuang);//起始周
+								//console.log("当前暂存:"+zancun.delNaN())
+							}
+						}
+					} else {
+    	zancun.push(Number(week1));//尾数周									
+}
+//////////////////无单双周存在
+						for (var week = Number(week1.split("-")[0]); ///例如 取1-4中的“1”“-”“4”
+						week <= Number(week1.split("-")[1]); week++) {//中的1，即第[0]个字符
+							//console.log("week:"+week)
+							zancun.push(week);
+							//console.log("当前暂存:"+zancun.delNaN())
+						}
+					} else {
+						zancun.push(Number(week1));
+					}
+
+
+//console.log('写入周结束')
+var br=zancun.delNaN();
+//console.log("br:"+br);
+bbb= bbb.concat(br);
+//console.log("bbb:"+bbb);
+jo=bbb;
+//console.log("llll:"+jo)
+// classItem['weeks'].push(jo);
+classItem['weeks'].push(jo);
+//console.log(get_zancun)
+				})
+//////////////////////////////////写入周结束
+//classItem['weeks']=classItem['weeks'][0];//去除数组嵌套
+
+//////课程所在节
+				let sectionRange = classProperty[2].split("[")[1].replace("]", "");
+				//console.log("sectionRange:"+sectionRange)
+for (var section = Number(sectionRange.split("-")[0]); section <= Number(sectionRange.split("-")[1]); section++) 
+{				//console.log("section:"+section)
+					var i=section;
+					////插入课程时间
+classItem['sections'].push(sectionTimes[(i-1)+""])
+ ////插入结束
+				}
+				var temp = classItem['weeks'][classItem['weeks'].length-1]
+				var tmp=[];
+				
+				tmp[0]=temp;
+				classItem['weeks'] = tmp[0];
+				//classItem['weeks']=classItem['weeks'][0];//除去一层嵌套
+                console.log(classItem)
+				result.push(classItem)
+			})
+	
+		})
+	})
+    console.info(result)
+	return {courseInfos: result};
+}
